@@ -5,7 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LLM Pipeline Explorer</title>
   <style>
-    /* Basic page layout and colors */
+    /* ==========================================================================
+       CSS STYLES: Modern Developer Dark Theme
+       ========================================================================== */
+    :root {
+      --bg-main: #0b0f17;
+      --bg-panel: #131c2e;
+      --bg-card: #1a263c;
+      --bg-input: #0f1726;
+      --border-color: #273752;
+      --border-focus: #38bdf8;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --accent-blue: #0284c7;
+      --accent-blue-hover: #0369a1;
+      --accent-cyan: #38bdf8;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --accent-purple: #a855f7;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
@@ -13,237 +35,1667 @@
     }
 
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background-color: #0f172a;
-      color: #f8fafc;
+      font-family: var(--font-sans);
+      background-color: var(--bg-main);
+      color: var(--text-main);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Top Navigation Bar */
+    .navbar {
+      background-color: var(--bg-panel);
+      border-bottom: 1px solid var(--border-color);
+      padding: 0.75rem 1.5rem;
+      display: flex;
       align-items: center;
-      padding: 2.5rem 1rem;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 50;
     }
 
-    .container {
-      width: 100%;
-      max-width: 720px;
+    .nav-brand {
       display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-    }
-
-    header {
-      text-align: center;
-      margin-bottom: 0.5rem;
-    }
-
-    header h1 {
-      font-size: 2.25rem;
-      font-weight: 700;
-      color: #38bdf8;
-      letter-spacing: -0.025em;
-      margin-bottom: 0.5rem;
-    }
-
-    header p {
-      font-size: 1rem;
-      color: #94a3b8;
-    }
-
-    .card {
-      background-color: #1e293b;
-      border: 1px solid #334155;
-      border-radius: 12px;
-      padding: 1.5rem;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-    }
-
-    .input-group {
-      display: flex;
-      flex-direction: column;
+      align-items: center;
       gap: 0.75rem;
     }
 
-    label {
+    .nav-logo-badge {
+      background: linear-gradient(135deg, #0284c7, #38bdf8);
+      color: #ffffff;
+      font-weight: 800;
       font-size: 0.9rem;
-      font-weight: 600;
-      color: #cbd5e1;
-      text-transform: uppercase;
+      padding: 0.35rem 0.6rem;
+      border-radius: 6px;
       letter-spacing: 0.05em;
     }
 
-    .input-row {
-      display: flex;
-      gap: 0.75rem;
+    .nav-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text-main);
+      letter-spacing: -0.02em;
     }
 
-    input[type="text"] {
-      flex: 1;
-      background-color: #0f172a;
-      border: 1px solid #475569;
+    .nav-subtitle {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-left: 0.5rem;
+    }
+
+    .nav-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .view-toggle {
+      display: flex;
+      background-color: var(--bg-input);
+      border: 1px solid var(--border-color);
       border-radius: 8px;
-      padding: 0.75rem 1rem;
-      font-size: 1rem;
-      color: #f8fafc;
+      padding: 2px;
+    }
+
+    .toggle-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 0.4rem 0.85rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .toggle-btn.active {
+      background-color: var(--bg-card);
+      color: var(--accent-cyan);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+
+    .preset-select {
+      background-color: var(--bg-input);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 0.45rem 0.85rem;
+      font-size: 0.85rem;
+      border-radius: 8px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.45rem 0.9rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background-color: var(--accent-blue);
+      color: #ffffff;
+      border-color: #0284c7;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--accent-blue-hover);
+    }
+
+    .btn-outline {
+      background-color: transparent;
+      border-color: var(--border-color);
+      color: var(--text-muted);
+    }
+
+    .btn-outline:hover {
+      background-color: var(--bg-card);
+      color: var(--text-main);
+    }
+
+    .btn-sm {
+      padding: 0.25rem 0.6rem;
+      font-size: 0.78rem;
+    }
+
+    .btn-danger {
+      background-color: rgba(244, 63, 94, 0.15);
+      border-color: rgba(244, 63, 94, 0.3);
+      color: #fb7185;
+    }
+    .btn-danger:hover {
+      background-color: rgba(244, 63, 94, 0.25);
+    }
+
+    /* Main Container */
+    .app-main {
+      flex: 1;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      max-width: 1600px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Pipeline DAG / Step Sequence Bar */
+    .pipeline-canvas {
+      background-color: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.25rem;
+      position: relative;
+    }
+
+    .canvas-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .canvas-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .summary-metrics {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .metric-chip {
+      background-color: var(--bg-input);
+      border: 1px solid var(--border-color);
+      padding: 0.25rem 0.65rem;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+    }
+
+    .metric-chip strong {
+      color: var(--accent-cyan);
+    }
+
+    /* Graph Nodes Container */
+    .nodes-flow {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+    }
+
+    .node-card {
+      background-color: var(--bg-card);
+      border: 2px solid var(--border-color);
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+      min-width: 220px;
+      max-width: 240px;
+      flex-shrink: 0;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s ease;
+    }
+
+    .node-card:hover {
+      border-color: var(--accent-cyan);
+      transform: translateY(-2px);
+    }
+
+    .node-card.selected {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+      background-color: #1e2c46;
+    }
+
+    .node-card.status-success {
+      border-left: 4px solid var(--accent-emerald);
+    }
+
+    .node-card.status-error {
+      border-left: 4px solid var(--accent-rose);
+      background-color: rgba(244, 63, 94, 0.08);
+    }
+
+    .node-card.status-running {
+      border-left: 4px solid var(--accent-amber);
+      animation: pulse 1.5s infinite;
+    }
+
+    .node-card.status-pending {
+      border-left: 4px solid var(--border-color);
+      opacity: 0.7;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.6; }
+      100% { opacity: 1; }
+    }
+
+    .node-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.4rem;
+    }
+
+    .node-step-badge {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      background-color: var(--bg-input);
+      color: var(--text-muted);
+    }
+
+    .node-status-icon {
+      font-size: 0.85rem;
+    }
+
+    .node-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 0.35rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .node-stats {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding-top: 0.4rem;
+      margin-top: 0.4rem;
+    }
+
+    .flow-connector {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      opacity: 0.5;
+      padding: 0 0.25rem;
+      flex-shrink: 0;
+    }
+
+    /* Workspace 2-Column Grid (Sandbox & Inspector) */
+    .workspace-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      flex: 1;
+    }
+
+    @media (max-width: 1024px) {
+      .workspace-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background-color: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      background-color: var(--bg-card);
+      padding: 0.75rem 1.25rem;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .panel-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .panel-body {
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      overflow-y: auto;
+      max-height: 650px;
+    }
+
+    /* Form & Input Groups */
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .field-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .field-label span.tag {
+      font-size: 0.7rem;
+      color: var(--accent-cyan);
+      font-family: var(--font-mono);
+      background-color: var(--bg-input);
+      padding: 0.1rem 0.4rem;
+      border-radius: 4px;
+    }
+
+    input[type="text"],
+    textarea,
+    select {
+      background-color: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-main);
+      padding: 0.6rem 0.8rem;
+      font-size: 0.88rem;
+      font-family: inherit;
       outline: none;
       transition: border-color 0.2s;
     }
 
-    input[type="text"]:focus {
-      border-color: #38bdf8;
+    input[type="text"]:focus,
+    textarea:focus,
+    select:focus {
+      border-color: var(--border-focus);
     }
 
-    button {
-      background-color: #0284c7;
-      color: #ffffff;
-      border: none;
-      border-radius: 8px;
-      padding: 0.75rem 1.5rem;
-      font-size: 1rem;
-      font-weight: 600;
+    textarea.code-font,
+    pre.code-font {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      line-height: 1.45;
+    }
+
+    /* Slider Row */
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .slider-row input[type="range"] {
+      flex: 1;
+      accent-color: var(--accent-cyan);
       cursor: pointer;
-      transition: background-color 0.2s, transform 0.1s;
-      white-space: nowrap;
     }
 
-    button:hover {
-      background-color: #0369a1;
-    }
-
-    button:active {
-      transform: scale(0.98);
-    }
-
-    .status-card h2 {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: #cbd5e1;
-      margin-bottom: 0.75rem;
-    }
-
-    .status-box {
-      background-color: #0f172a;
-      border: 1px solid #334155;
-      border-radius: 8px;
-      padding: 1rem;
-      font-size: 0.95rem;
-      line-height: 1.5;
-      color: #94a3b8;
-    }
-
-    .status-highlight {
-      color: #38bdf8;
-      font-weight: 600;
-    }
-
-    .pipeline-stages {
-      margin-top: 1rem;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 0.75rem;
-    }
-
-    .stage-item {
-      background-color: #1e293b;
-      border: 1px dashed #475569;
-      border-radius: 8px;
-      padding: 0.75rem;
-      text-align: center;
+    .slider-value {
+      font-family: var(--font-mono);
       font-size: 0.85rem;
-      color: #94a3b8;
+      color: var(--accent-cyan);
+      min-width: 40px;
+      text-align: right;
     }
 
-    .stage-item .number {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      line-height: 20px;
-      border-radius: 50%;
-      background-color: #334155;
-      color: #e2e8f0;
+    /* Inspector Code & Payload Views */
+    .code-block-container {
+      background-color: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .code-block-header {
+      background-color: rgba(255, 255, 255, 0.03);
+      padding: 0.4rem 0.75rem;
       font-size: 0.75rem;
-      margin-bottom: 0.35rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    pre.code-display {
+      padding: 0.85rem;
+      color: #e2e8f0;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 0.82rem;
+      line-height: 1.45;
+      max-height: 250px;
+    }
+
+    /* Error Banner */
+    .error-banner {
+      background-color: rgba(244, 63, 94, 0.12);
+      border: 1px solid rgba(244, 63, 94, 0.3);
+      border-radius: 8px;
+      padding: 0.85rem 1rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      color: #fda4af;
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+
+    .error-banner strong {
+      color: #ffe4e6;
+    }
+
+    /* Comparison View (Tab 2) */
+    .comparison-view {
+      display: none;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+    }
+
+    .run-card {
+      background-color: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .run-card.run-a {
+      border-top: 4px solid var(--accent-cyan);
+    }
+
+    .run-card.run-b {
+      border-top: 4px solid var(--accent-purple);
+    }
+
+    .run-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .run-badge {
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+    }
+
+    .run-badge.badge-a {
+      background-color: rgba(56, 189, 248, 0.15);
+      color: var(--accent-cyan);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    .run-badge.badge-b {
+      background-color: rgba(168, 85, 247, 0.15);
+      color: var(--accent-purple);
+      border: 1px solid rgba(168, 85, 247, 0.3);
+    }
+
+    .diff-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+      font-family: var(--font-mono);
+    }
+
+    .diff-table td {
+      padding: 0.45rem 0.6rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .diff-table td:first-child {
+      color: var(--text-muted);
+      width: 40%;
+    }
+
+    /* Trace JSON Modal */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-dialog {
+      background-color: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 750px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-header {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-body {
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .modal-footer {
+      padding: 0.75rem 1.25rem;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
     }
   </style>
 </head>
 <body>
 
-  <div class="container">
-    <header>
-      <h1>LLM Pipeline Explorer</h1>
-      <p>A step-by-step visual explorer for Large Language Model processing.</p>
-    </header>
+  <!-- ========================================================================
+       TOP NAVIGATION BAR
+       ======================================================================== -->
+  <nav class="navbar">
+    <div class="nav-brand">
+      <div class="nav-logo-badge">LLM-PIPE</div>
+      <div class="nav-title">Pipeline Explorer</div>
+      <div class="nav-subtitle">Debug & Test Multi-Step LLM Workflows</div>
+    </div>
 
-    <section class="card input-group">
-      <label for="promptInput">Prompt Input</label>
-      <div class="input-row">
-        <input 
-          type="text" 
-          id="promptInput" 
-          placeholder="Type a sentence here..." 
-          value="The quick brown fox jumps over the lazy dog."
-        >
-        <button id="runBtn">Explore Pipeline</button>
+    <div class="nav-controls">
+      <!-- Preset Selection -->
+      <label for="pipelinePreset" style="font-size: 0.8rem; color: var(--text-muted);">Preset:</label>
+      <select id="pipelinePreset" class="preset-select">
+        <option value="rag">1. RAG Q&amp;A Pipeline</option>
+        <option value="extraction">2. Structured Extraction Pipeline</option>
+      </select>
+
+      <!-- View Switcher Tabs -->
+      <div class="view-toggle">
+        <button id="tabSandbox" class="toggle-btn active">Live Sandbox</button>
+        <button id="tabCompare" class="toggle-btn">Side-by-Side Compare</button>
+      </div>
+
+      <!-- Execution & Trace Buttons -->
+      <button id="btnRunFull" class="btn btn-primary">▶ Run Full Pipeline</button>
+      <button id="btnExportTrace" class="btn btn-outline btn-sm">📥 Export Trace</button>
+      <button id="btnImportTrace" class="btn btn-outline btn-sm">📤 Load Trace</button>
+    </div>
+  </nav>
+
+  <!-- ========================================================================
+       MAIN APP WORKSPACE
+       ======================================================================== -->
+  <main class="app-main">
+
+    <!-- PIPELINE GRAPH / STEP SEQUENCE BAR -->
+    <section class="pipeline-canvas">
+      <div class="canvas-header">
+        <div class="canvas-title">
+          <span>Pipeline DAG Execution Order</span>
+          <span style="font-weight: normal; font-size: 0.8rem; color: var(--text-muted);">(Click any node to inspect or run step)</span>
+        </div>
+        <div class="summary-metrics">
+          <div class="metric-chip">Total Latency: <strong id="metricTotalLatency">0 ms</strong></div>
+          <div class="metric-chip">Total Tokens: <strong id="metricTotalTokens">0</strong></div>
+          <div class="metric-chip">Status: <strong id="metricStatus" style="color: var(--accent-emerald);">Ready</strong></div>
+        </div>
+      </div>
+
+      <!-- Graph Nodes Row -->
+      <div id="nodesFlow" class="nodes-flow">
+        <!-- Rendered dynamically by JavaScript -->
       </div>
     </section>
 
-    <section class="card status-card">
-      <h2>Pipeline Status</h2>
-      <div id="statusBox" class="status-box">
-        Explorer initialized. Click <strong>"Explore Pipeline"</strong> above to test the input.
+    <!-- VIEW 1: LIVE SANDBOX & STEP INSPECTOR -->
+    <div id="viewSandbox" class="workspace-grid">
+
+      <!-- LEFT COLUMN: LIVE SANDBOX & VARIABLE OVERRIDES -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span>⚙️ Live Sandbox &amp; Runtime Overrides</span>
+          </div>
+          <button id="btnRunSingleStep" class="btn btn-outline btn-sm">▶ Run Selected Step</button>
+        </div>
+
+        <div class="panel-body">
+          <!-- Test Query / Primary Input -->
+          <div class="field-group">
+            <div class="field-label">
+              <span>Primary Input / Test Query</span>
+              <span class="tag">runtime input</span>
+            </div>
+            <textarea id="inputTestQuery" rows="3" placeholder="Enter test query..."></textarea>
+          </div>
+
+          <!-- Active Step Prompt Template Editor -->
+          <div class="field-group">
+            <div class="field-label">
+              <span>Step Prompt Template (<span id="labelStepName">Step</span>)</span>
+              <span class="tag">template</span>
+            </div>
+            <textarea id="inputPromptTemplate" class="code-font" rows="6" placeholder="Prompt template with {variables}..."></textarea>
+          </div>
+
+          <!-- Model Parameter Overrides -->
+          <div class="field-group">
+            <div class="field-label">
+              <span>Model Parameter Overrides</span>
+              <span class="tag">inference config</span>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.25rem;">
+              <div>
+                <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">Model Identifier</label>
+                <select id="selectModelId" style="width: 100%;">
+                  <option value="gpt-4o">gpt-4o</option>
+                  <option value="gpt-4o-mini">gpt-4o-mini</option>
+                  <option value="claude-3-5-sonnet">claude-3-5-sonnet</option>
+                  <option value="gemini-1.5-pro">gemini-1.5-pro</option>
+                  <option value="custom-mock">custom-mock-engine</option>
+                </select>
+              </div>
+
+              <div>
+                <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">Max Tokens</label>
+                <input type="text" id="inputMaxTokens" value="1024" style="width: 100%;">
+              </div>
+            </div>
+
+            <!-- Temperature Slider -->
+            <div style="margin-top: 0.75rem;">
+              <div class="slider-row">
+                <label style="font-size: 0.75rem; color: var(--text-muted);">Temperature</label>
+                <input type="range" id="sliderTemperature" min="0" max="1" step="0.05" value="0.2">
+                <span id="labelTemperature" class="slider-value">0.20</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Error Simulation Trigger -->
+          <div class="field-group" style="border-top: 1px solid var(--border-color); padding-top: 1rem;">
+            <div class="field-label">
+              <span>Test &amp; Error Highlighting Simulation</span>
+              <span class="tag">debugging</span>
+            </div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <button id="btnSimulateEmptyRetrieval" class="btn btn-outline btn-sm">Simulate Empty Retrieval</button>
+              <button id="btnSimulateSchemaError" class="btn btn-outline btn-sm">Simulate Schema/JSON Error</button>
+              <button id="btnResetSimulation" class="btn btn-outline btn-sm">Reset to Normal</button>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div class="pipeline-stages">
-        <div class="stage-item">
-          <div class="number">1</div>
-          <div>Tokenization</div>
+      <!-- RIGHT COLUMN: STEP INSPECTOR -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span>🔍 Step Inspector: <span id="inspectorStepTitle" style="color: var(--accent-cyan);">Select a Step</span></span>
+          </div>
+          <div id="inspectorStepBadge" class="node-step-badge">STEP 1</div>
         </div>
-        <div class="stage-item">
-          <div class="number">2</div>
-          <div>Embeddings</div>
-        </div>
-        <div class="stage-item">
-          <div class="number">3</div>
-          <div>Attention Layers</div>
-        </div>
-        <div class="stage-item">
-          <div class="number">4</div>
-          <div>Next Token Output</div>
+
+        <div class="panel-body">
+          <!-- Error Alert Banner (Shown if step has an error) -->
+          <div id="inspectorErrorBanner" class="error-banner" style="display: none;">
+            <span>⚠️</span>
+            <div>
+              <strong>Step Execution Failure:</strong>
+              <div id="inspectorErrorMessage">Schema validation error: missing expected keys.</div>
+            </div>
+          </div>
+
+          <!-- Execution Metrics -->
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;">
+            <div class="metric-chip">Latency: <strong id="inspMetricLatency">0 ms</strong></div>
+            <div class="metric-chip">Tokens In: <strong id="inspMetricTokensIn">0</strong></div>
+            <div class="metric-chip">Tokens Out: <strong id="inspMetricTokensOut">0</strong></div>
+          </div>
+
+          <!-- Injected Variables Section -->
+          <div class="code-block-container">
+            <div class="code-block-header">
+              <span>INJECTED VARIABLES &amp; CONTEXT</span>
+              <span id="inspVarCount">0 variables</span>
+            </div>
+            <pre id="inspVariablesDisplay" class="code-display code-font">{ }</pre>
+          </div>
+
+          <!-- Assembled Prompt / Resolved Input -->
+          <div class="code-block-container">
+            <div class="code-block-header">
+              <span>FINAL ASSEMBLED PROMPT / STEP PAYLOAD</span>
+              <span>monospaced text</span>
+            </div>
+            <pre id="inspPromptDisplay" class="code-display code-font">// Select a step to view payload</pre>
+          </div>
+
+          <!-- Raw Output / Intermediate Result -->
+          <div class="code-block-container">
+            <div class="code-block-header">
+              <span>STEP OUTPUT / RETURN VALUE</span>
+              <span>raw result</span>
+            </div>
+            <pre id="inspOutputDisplay" class="code-display code-font">// Run pipeline to generate output</pre>
+          </div>
         </div>
       </div>
-    </section>
+
+    </div>
+
+    <!-- VIEW 2: SIDE-BY-SIDE COMPARISON -->
+    <div id="viewCompare" class="comparison-view">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <h2 style="font-size: 1.1rem; color: var(--text-main);">Side-by-Side Run Comparison</h2>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">Compare outputs, latency, and token consumption across different runs or prompts.</p>
+        </div>
+        <button id="btnSnapshotComparison" class="btn btn-outline btn-sm">📸 Snapshot Current Run into Run B</button>
+      </div>
+
+      <div class="comparison-grid">
+        <!-- RUN A CARD -->
+        <div class="run-card run-a">
+          <div class="run-card-header">
+            <div class="run-badge badge-a">RUN A (BASELINE)</div>
+            <span id="compareRunATimestamp" style="font-size: 0.75rem; color: var(--text-muted);">Timestamp: --</span>
+          </div>
+
+          <table class="diff-table">
+            <tr>
+              <td>Model ID</td>
+              <td id="compareModelA">gpt-4o</td>
+            </tr>
+            <tr>
+              <td>Temperature</td>
+              <td id="compareTempA">0.20</td>
+            </tr>
+            <tr>
+              <td>Total Latency</td>
+              <td id="compareLatencyA">0 ms</td>
+            </tr>
+            <tr>
+              <td>Total Tokens</td>
+              <td id="compareTokensA">0</td>
+            </tr>
+          </table>
+
+          <div class="code-block-container">
+            <div class="code-block-header">FINAL PIPELINE OUTPUT (RUN A)</div>
+            <pre id="compareOutputA" class="code-display code-font">// Run A output will appear here</pre>
+          </div>
+        </div>
+
+        <!-- RUN B CARD -->
+        <div class="run-card run-b">
+          <div class="run-card-header">
+            <div class="run-badge badge-b">RUN B (EXPERIMENT)</div>
+            <span id="compareRunBTimestamp" style="font-size: 0.75rem; color: var(--text-muted);">Timestamp: --</span>
+          </div>
+
+          <table class="diff-table">
+            <tr>
+              <td>Model ID</td>
+              <td id="compareModelB">gpt-4o-mini</td>
+            </tr>
+            <tr>
+              <td>Temperature</td>
+              <td id="compareTempB">0.70</td>
+            </tr>
+            <tr>
+              <td>Total Latency</td>
+              <td id="compareLatencyB">0 ms</td>
+            </tr>
+            <tr>
+              <td>Total Tokens</td>
+              <td id="compareTokensB">0</td>
+            </tr>
+          </table>
+
+          <div class="code-block-container">
+            <div class="code-block-header">FINAL PIPELINE OUTPUT (RUN B)</div>
+            <pre id="compareOutputB" class="code-display code-font">// Run B output will appear here</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ========================================================================
+       TRACE IMPORT / EXPORT MODAL
+       ======================================================================== -->
+  <div id="modalTrace" class="modal-backdrop">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 id="modalTraceTitle" style="font-size: 1rem; color: var(--text-main);">Pipeline Trace JSON</h3>
+        <button id="modalCloseBtn" style="background: none; border: none; color: var(--text-muted); font-size: 1.25rem; cursor: pointer;">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.85rem; color: var(--text-muted);">
+          Inspect, copy, or paste a complete pipeline trace JSON below:
+        </p>
+        <textarea id="modalTraceTextarea" class="code-font" rows="14" style="width: 100%;"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button id="modalApplyImportBtn" class="btn btn-primary" style="display: none;">Apply Loaded Trace</button>
+        <button id="modalDownloadBtn" class="btn btn-outline">Download .json File</button>
+      </div>
+    </div>
   </div>
 
+  <!-- ========================================================================
+       JAVASCRIPT: APPLICATION LOGIC
+       ======================================================================== -->
   <script>
-    // WHAT THIS DOES: Finds the HTML elements on the page (the text box, button, and status display) so our JavaScript code can read and update them.
-    const promptInput = document.getElementById('promptInput');
-    const runBtn = document.getElementById('runBtn');
-    const statusBox = document.getElementById('statusBox');
-
-    // WHAT THIS DOES: Reads what you typed into the input box and updates the status box to confirm that the explorer is active and working.
-    function handleExplore() {
-      const userText = promptInput.value.trim();
-
-      if (userText === "") {
-        statusBox.innerHTML = '<span style="color: #f87171;">⚠️ Please enter some text first!</span>';
-        return;
+    // WHAT THIS DOES: Stores default pipeline definitions (RAG Q&A and Structured Extraction) with realistic mock data, prompt templates, and step configurations.
+    const PIPELINE_PRESETS = {
+      rag: {
+        id: "rag",
+        name: "RAG Q&A Pipeline",
+        description: "Retrieves document passages from a vector database, augments context, generates an answer, and validates citations.",
+        defaultQuery: "What are the advantages of Mixture of Experts (MoE) architectures?",
+        steps: [
+          {
+            id: "retrieval",
+            name: "Document Retrieval",
+            type: "retrieval",
+            status: "pending",
+            latency: 0,
+            tokensIn: 18,
+            tokensOut: 142,
+            promptTemplate: "FIND_NEAREST_CHUNKS(query=\"{query}\", top_k=3, similarity_threshold=0.78)",
+            variables: {
+              top_k: 3,
+              similarity_metric: "cosine",
+              knowledge_base: "deep-learning-papers-v2"
+            },
+            modelParams: {
+              modelId: "text-embedding-3-small",
+              temperature: 0.0,
+              maxTokens: 512
+            },
+            output: null,
+            error: null
+          },
+          {
+            id: "prompt_assembly",
+            name: "Prompt Assembly",
+            type: "prompt",
+            status: "pending",
+            latency: 0,
+            tokensIn: 210,
+            tokensOut: 0,
+            promptTemplate: "System: You are an expert AI researcher. Answer the user query using only the provided context chunks. Cite sources as [1], [2].\n\nContext:\n{retrieved_chunks}\n\nUser Question: {query}",
+            variables: {
+              role: "expert AI researcher",
+              citation_style: "bracketed_numeric"
+            },
+            modelParams: {
+              modelId: "gpt-4o",
+              temperature: 0.2,
+              maxTokens: 1024
+            },
+            output: null,
+            error: null
+          },
+          {
+            id: "model_inference",
+            name: "Model Inference",
+            type: "inference",
+            status: "pending",
+            latency: 0,
+            tokensIn: 325,
+            tokensOut: 184,
+            promptTemplate: "{assembled_prompt}",
+            variables: {
+              stream: false,
+              stop_sequences: ["\n\nUser:"]
+            },
+            modelParams: {
+              modelId: "gpt-4o",
+              temperature: 0.2,
+              maxTokens: 1024
+            },
+            output: null,
+            error: null
+          },
+          {
+            id: "citation_validation",
+            name: "Citation Verification",
+            type: "validation",
+            status: "pending",
+            latency: 0,
+            tokensIn: 184,
+            tokensOut: 45,
+            promptTemplate: "VALIDATE_CITATIONS(text=\"{raw_output}\", source_chunks=\"{retrieved_chunks}\")",
+            variables: {
+              strict_mode: true,
+              min_grounding_score: 0.85
+            },
+            modelParams: {
+              modelId: "rule-based-guardrail",
+              temperature: 0.0,
+              maxTokens: 256
+            },
+            output: null,
+            error: null
+          }
+        ]
+      },
+      extraction: {
+        id: "extraction",
+        name: "Structured Extraction Pipeline",
+        description: "Extracts strictly typed JSON data from unstructured contracts or invoice text and validates against schema.",
+        defaultQuery: "Invoice #INV-2026-889 issued to Acme Corp on 2026-10-15 for 3 units of GPU Cloud Cluster at $1,250 each. Total amount due: $3,750.",
+        steps: [
+          {
+            id: "clean_input",
+            name: "Text Preprocessing",
+            type: "preprocessing",
+            status: "pending",
+            latency: 0,
+            tokensIn: 48,
+            tokensOut: 46,
+            promptTemplate: "STRIP_WHITESPACE_AND_NORMALIZE(text=\"{raw_text}\")",
+            variables: {
+              encoding: "utf-8",
+              normalize_unicode: true
+            },
+            modelParams: {
+              modelId: "python-preprocessor",
+              temperature: 0.0,
+              maxTokens: 512
+            },
+            output: null,
+            error: null
+          },
+          {
+            id: "schema_prompt",
+            name: "Schema Prompt Assembly",
+            type: "prompt",
+            status: "pending",
+            latency: 0,
+            tokensIn: 110,
+            tokensOut: 0,
+            promptTemplate: "System: You are a strict data extraction engine. Extract JSON adhering exactly to the following schema:\n{\n  \"invoice_id\": string,\n  \"customer\": string,\n  \"items\": [{\"name\": string, \"quantity\": number, \"unit_price\": number}],\n  \"total_amount\": number\n}\nOutput ONLY valid JSON.\n\nInput Document:\n{cleaned_text}",
+            variables: {
+              schema_format: "JSON_Schema_Draft_7",
+              strict_types: true
+            },
+            modelParams: {
+              modelId: "claude-3-5-sonnet",
+              temperature: 0.0,
+              maxTokens: 1024
+            },
+            output: null,
+            error: null
+          },
+          {
+            id: "json_inference",
+            name: "LLM Structured Generation",
+            type: "inference",
+            status: "pending",
+            latency: 0,
+            tokensIn: 245,
+            tokensOut: 98,
+            promptTemplate: "{assembled_prompt}",
+            variables: {
+              response_format: "json_object"
+            },
+            modelParams: {
+              modelId: "claude-3-5-sonnet",
+              temperature: 0.0,
+              maxTokens: 1024
+            },
+            output: null,
+            error: null
+          },
+          {
+            id: "schema_validation",
+            name: "JSON Schema Validator",
+            type: "validation",
+            status: "pending",
+            latency: 0,
+            tokensIn: 98,
+            tokensOut: 12,
+            promptTemplate: "VALIDATE_JSON_SCHEMA(json=\"{model_output}\", required_keys=[\"invoice_id\", \"customer\", \"total_amount\"])",
+            variables: {
+              fail_on_missing_key: true
+            },
+            modelParams: {
+              modelId: "json-schema-validator",
+              temperature: 0.0,
+              maxTokens: 256
+            },
+            output: null,
+            error: null
+          }
+        ]
       }
+    };
 
-      statusBox.innerHTML = `
-        ✅ <strong>Pipeline Loaded!</strong><br>
-        Current input: <span class="status-highlight">"${userText}"</span><br>
-        Ready for the next pipeline step.
-      `;
+    // WHAT THIS DOES: Holds the live runtime state of the application, including the active pipeline, currently selected step, and historical runs for comparison.
+    const appState = {
+      activePresetId: "rag",
+      pipeline: JSON.parse(JSON.stringify(PIPELINE_PRESETS.rag)),
+      selectedStepIndex: 0,
+      activeView: "sandbox", // "sandbox" or "compare"
+      simulationMode: "normal", // "normal", "empty_retrieval", "schema_error"
+      runA: null, // Baseline run for comparison
+      runB: null  // Experiment run for comparison
+    };
+
+    // WHAT THIS DOES: Gathers and caches references to interactive HTML elements on the page.
+    const elements = {
+      presetSelect: document.getElementById('pipelinePreset'),
+      tabSandbox: document.getElementById('tabSandbox'),
+      tabCompare: document.getElementById('tabCompare'),
+      viewSandbox: document.getElementById('viewSandbox'),
+      viewCompare: document.getElementById('viewCompare'),
+      btnRunFull: document.getElementById('btnRunFull'),
+      btnRunSingleStep: document.getElementById('btnRunSingleStep'),
+      btnExportTrace: document.getElementById('btnExportTrace'),
+      btnImportTrace: document.getElementById('btnImportTrace'),
+      nodesFlow: document.getElementById('nodesFlow'),
+      metricTotalLatency: document.getElementById('metricTotalLatency'),
+      metricTotalTokens: document.getElementById('metricTotalTokens'),
+      metricStatus: document.getElementById('metricStatus'),
+      inputTestQuery: document.getElementById('inputTestQuery'),
+      inputPromptTemplate: document.getElementById('inputPromptTemplate'),
+      labelStepName: document.getElementById('labelStepName'),
+      selectModelId: document.getElementById('selectModelId'),
+      inputMaxTokens: document.getElementById('inputMaxTokens'),
+      sliderTemperature: document.getElementById('sliderTemperature'),
+      labelTemperature: document.getElementById('labelTemperature'),
+      btnSimulateEmptyRetrieval: document.getElementById('btnSimulateEmptyRetrieval'),
+      btnSimulateSchemaError: document.getElementById('btnSimulateSchemaError'),
+      btnResetSimulation: document.getElementById('btnResetSimulation'),
+      inspectorStepTitle: document.getElementById('inspectorStepTitle'),
+      inspectorStepBadge: document.getElementById('inspectorStepBadge'),
+      inspectorErrorBanner: document.getElementById('inspectorErrorBanner'),
+      inspectorErrorMessage: document.getElementById('inspectorErrorMessage'),
+      inspMetricLatency: document.getElementById('inspMetricLatency'),
+      inspMetricTokensIn: document.getElementById('inspMetricTokensIn'),
+      inspMetricTokensOut: document.getElementById('inspMetricTokensOut'),
+      inspVarCount: document.getElementById('inspVarCount'),
+      inspVariablesDisplay: document.getElementById('inspVariablesDisplay'),
+      inspPromptDisplay: document.getElementById('inspPromptDisplay'),
+      inspOutputDisplay: document.getElementById('inspOutputDisplay'),
+      modalTrace: document.getElementById('modalTrace'),
+      modalTraceTitle: document.getElementById('modalTraceTitle'),
+      modalTraceTextarea: document.getElementById('modalTraceTextarea'),
+      modalCloseBtn: document.getElementById('modalCloseBtn'),
+      modalDownloadBtn: document.getElementById('modalDownloadBtn'),
+      modalApplyImportBtn: document.getElementById('modalApplyImportBtn'),
+      btnSnapshotComparison: document.getElementById('btnSnapshotComparison'),
+      compareRunATimestamp: document.getElementById('compareRunATimestamp'),
+      compareRunBTimestamp: document.getElementById('compareRunBTimestamp'),
+      compareModelA: document.getElementById('compareModelA'),
+      compareModelB: document.getElementById('compareModelB'),
+      compareTempA: document.getElementById('compareTempA'),
+      compareTempB: document.getElementById('compareTempB'),
+      compareLatencyA: document.getElementById('compareLatencyA'),
+      compareLatencyB: document.getElementById('compareLatencyB'),
+      compareTokensA: document.getElementById('compareTokensA'),
+      compareTokensB: document.getElementById('compareTokensB'),
+      compareOutputA: document.getElementById('compareOutputA'),
+      compareOutputB: document.getElementById('compareOutputB')
+    };
+
+    // WHAT THIS DOES: Renders the pipeline steps as connected graphical node cards across the top canvas.
+    function renderPipelineGraph() {
+      elements.nodesFlow.innerHTML = '';
+      const steps = appState.pipeline.steps;
+
+      steps.forEach((step, index) => {
+        const isSelected = (index === appState.selectedStepIndex);
+        
+        let statusIcon = '⚪';
+        let statusClass = 'status-pending';
+        if (step.status === 'success') {
+          statusIcon = '✅';
+          statusClass = 'status-success';
+        } else if (step.status === 'error') {
+          statusIcon = '❌';
+          statusClass = 'status-error';
+        } else if (step.status === 'running') {
+          statusIcon = '⏳';
+          statusClass = 'status-running';
+        }
+
+        const card = document.createElement('div');
+        card.className = `node-card ${statusClass} ${isSelected ? 'selected' : ''}`;
+        card.innerHTML = `
+          <div class="node-top">
+            <span class="node-step-badge">STEP ${index + 1}</span>
+            <span class="node-status-icon">${statusIcon}</span>
+          </div>
+          <div class="node-title">${step.name}</div>
+          <div class="node-stats">
+            <span>⏱️ ${step.latency || 0}ms</span>
+            <span>🔤 ${(step.tokensIn || 0) + (step.tokensOut || 0)}t</span>
+          </div>
+        `;
+
+        card.addEventListener('click', () => {
+          appState.selectedStepIndex = index;
+          renderPipelineGraph();
+          updateInspectorAndSandbox();
+        });
+
+        elements.nodesFlow.appendChild(card);
+
+        // Add visual arrow connector between steps
+        if (index < steps.length - 1) {
+          const connector = document.createElement('div');
+          connector.className = 'flow-connector';
+          connector.innerText = '→';
+          elements.nodesFlow.appendChild(connector);
+        }
+      });
+
+      // Update aggregate metrics
+      const totalLatency = steps.reduce((sum, s) => sum + (s.latency || 0), 0);
+      const totalTokens = steps.reduce((sum, s) => sum + (s.tokensIn || 0) + (s.tokensOut || 0), 0);
+      const hasError = steps.some(s => s.status === 'error');
+      const isRunning = steps.some(s => s.status === 'running');
+
+      elements.metricTotalLatency.innerText = `${totalLatency} ms`;
+      elements.metricTotalTokens.innerText = `${totalTokens}`;
+
+      if (isRunning) {
+        elements.metricStatus.innerText = 'Running...';
+        elements.metricStatus.style.color = 'var(--accent-amber)';
+      } else if (hasError) {
+        elements.metricStatus.innerText = 'Failed Step';
+        elements.metricStatus.style.color = 'var(--accent-rose)';
+      } else if (steps.every(s => s.status === 'success')) {
+        elements.metricStatus.innerText = 'Completed';
+        elements.metricStatus.style.color = 'var(--accent-emerald)';
+      } else {
+        elements.metricStatus.innerText = 'Ready';
+        elements.metricStatus.style.color = 'var(--accent-cyan)';
+      }
     }
 
-    // WHAT THIS DOES: Listens for a mouse click on the "Explore Pipeline" button and runs the handleExplore function when clicked.
-    runBtn.addEventListener('click', handleExplore);
+    // WHAT THIS DOES: Updates the step inspector panel (right column) and sandbox editors (left column) with data for the active step.
+    function updateInspectorAndSandbox() {
+      const step = appState.pipeline.steps[appState.selectedStepIndex];
+      if (!step) return;
 
-    // WHAT THIS DOES: Listens for keyboard presses inside the input box so pressing the "Enter" key also triggers the button click.
-    promptInput.addEventListener('keydown', function(event) {
-      if (event.key === 'Enter') {
-        handleExplore();
+      // Update Inspector Header & Metrics
+      elements.inspectorStepTitle.innerText = step.name;
+      elements.inspectorStepBadge.innerText = `STEP ${appState.selectedStepIndex + 1} (${step.type.toUpperCase()})`;
+      elements.inspMetricLatency.innerText = `${step.latency || 0} ms`;
+      elements.inspMetricTokensIn.innerText = `${step.tokensIn || 0}`;
+      elements.inspMetricTokensOut.innerText = `${step.tokensOut || 0}`;
+
+      // Update Error Banner
+      if (step.status === 'error' && step.error) {
+        elements.inspectorErrorBanner.style.display = 'flex';
+        elements.inspectorErrorMessage.innerText = step.error;
+      } else {
+        elements.inspectorErrorBanner.style.display = 'none';
       }
-    });
+
+      // Update Injected Variables Display
+      elements.inspVarCount.innerText = `${Object.keys(step.variables || {}).length} variables`;
+      elements.inspVariablesDisplay.innerText = JSON.stringify(step.variables || {}, null, 2);
+
+      // Compute and Display Assembled Payload
+      const query = elements.inputTestQuery.value || appState.pipeline.defaultQuery;
+      let assembled = step.promptTemplate || '';
+      assembled = assembled.replace('{query}', query);
+      assembled = assembled.replace('{raw_text}', query);
+      elements.inspPromptDisplay.innerText = assembled;
+
+      // Display Step Output
+      if (step.output !== null) {
+        if (typeof step.output === 'object') {
+          elements.inspOutputDisplay.innerText = JSON.stringify(step.output, null, 2);
+        } else {
+          elements.inspOutputDisplay.innerText = step.output;
+        }
+      } else {
+        elements.inspOutputDisplay.innerText = '// Not executed yet. Click "Run Selected Step" or "Run Full Pipeline".';
+      }
+
+      // Synchronize Sandbox Controls for this step
+      elements.labelStepName.innerText = step.name;
+      elements.inputPromptTemplate.value = step.promptTemplate;
+      elements.selectModelId.value = step.modelParams.modelId;
+      elements.inputMaxTokens.value = step.modelParams.maxTokens;
+      elements.sliderTemperature.value = step.modelParams.temperature;
+      elements.labelTemperature.innerText = Number(step.modelParams.temperature).toFixed(2);
+    }
+
+    // WHAT THIS DOES: Provides a modular runner interface that simulates step execution with realistic latency, token counts, and outputs (or can connect to real APIs).
+    function executeStep(stepIndex) {
+      const step = appState.pipeline.steps[stepIndex];
+      const query = elements.inputTestQuery.value.trim() || appState.pipeline.defaultQuery;
+
+      step.status = 'running';
+      renderPipelineGraph();
+
+      return new Promise((resolve) => {
+        // Realistic simulated processing latency (between 120ms and 350ms)
+        const simLatency = Math.floor(Math.random() * 200) + 140;
+
+        setTimeout(() => {
+          step.latency = simLatency;
+
+          // ==================================================================
+          // PIPELINE 1: RAG Q&A EXECUTION LOGIC
+          // ==================================================================
+          if (appState.activePresetId === 'rag') {
+            if (step.id === 'retrieval') {
+              if (appState.simulationMode === 'empty_retrieval') {
+                step.status = 'error';
+                step.error = 'Empty retrieval: 0 documents matched the vector similarity threshold (>0.78).';
+                step.output = [];
+              } else {
+                step.status = 'success';
+                step.error = null;
+                step.output = [
+                  { id: "doc-101", score: 0.92, chunk: "MoE models replace dense feed-forward networks with sparse multiple experts. Only a subset of experts activate per token." },
+                  { id: "doc-104", score: 0.86, chunk: "Primary advantages include massive parameter scaling (e.g. 8x7B) without proportional compute cost at inference time." },
+                  { id: "doc-109", score: 0.81, chunk: "Gating routers dynamically route tokens to top-k experts, maintaining high representational capacity." }
+                ];
+              }
+            } else if (step.id === 'prompt_assembly') {
+              const prevOutput = appState.pipeline.steps[0].output || [];
+              const chunksText = prevOutput.map((d, i) => `[${i+1}] ${d.chunk}`).join('\n\n');
+              step.status = 'success';
+              step.error = null;
+              step.output = `System: Answer using provided context.\n\nContext:\n${chunksText || '(No context retrieved)'}\n\nQuestion: ${query}`;
+            } else if (step.id === 'model_inference') {
+              const temp = step.modelParams.temperature;
+              step.status = 'success';
+              step.error = null;
+              step.output = `Mixture of Experts (MoE) architectures provide two key advantages:\n\n1. Efficient Parameter Scaling: They allow models to expand to hundreds of billions of parameters while only activating a small subset of experts per token, keeping inference FLOPs low [1], [2].\n2. Dynamic Token Routing: Learned gating routers intelligently assign specialized tokens to specialized subnetworks, boosting accuracy without inflating compute budgets [3]. (Generated with ${step.modelParams.modelId}, temp=${temp})`;
+            } else if (step.id === 'citation_validation') {
+              step.status = 'success';
+              step.error = null;
+              step.output = {
+                status: "VERIFIED",
+                groundingScore: 0.94,
+                citationsFound: ["[1]", "[2]", "[3]"],
+                hallucinationRisk: "LOW",
+                verifiedAt: new Date().toISOString()
+              };
+            }
+          }
+
+          // ==================================================================
+          // PIPELINE 2: STRUCTURED EXTRACTION EXECUTION LOGIC
+          // ==================================================================
+          else if (appState.activePresetId === 'extraction') {
+            if (step.id === 'clean_input') {
+              step.status = 'success';
+              step.error = null;
+              step.output = query.replace(/\s+/g, ' ').trim();
+            } else if (step.id === 'schema_prompt') {
+              step.status = 'success';
+              step.error = null;
+              step.output = `System: Extract JSON following strict invoice schema.\nDocument:\n${query}`;
+            } else if (step.id === 'json_inference') {
+              if (appState.simulationMode === 'schema_error') {
+                // Simulate invalid malformed JSON
+                step.status = 'success';
+                step.error = null;
+                step.output = '{\n  "invoice_id": "INV-2026-889",\n  "customer": "Acme Corp",\n  "total_amount": "three thousand dollars" /* Type mismatch: expected number */\n';
+              } else {
+                step.status = 'success';
+                step.error = null;
+                step.output = JSON.stringify({
+                  invoice_id: "INV-2026-889",
+                  customer: "Acme Corp",
+                  date: "2026-10-15",
+                  items: [
+                    { name: "GPU Cloud Cluster", quantity: 3, unit_price: 1250 }
+                  ],
+                  total_amount: 3750
+                }, null, 2);
+              }
+            } else if (step.id === 'schema_validation') {
+              const rawJson = appState.pipeline.steps[2].output || '';
+              try {
+                const parsed = JSON.parse(rawJson);
+                if (typeof parsed.total_amount !== 'number') {
+                  throw new Error('Type validation failed: "total_amount" must be of type number, got string.');
+                }
+                step.status = 'success';
+                step.error = null;
+                step.output = {
+                  valid: true,
+                  schemaVersion: "Draft-07",
+                  parsedKeys: Object.keys(parsed),
+                  extractedData: parsed
+                };
+              } catch (err) {
+                step.status = 'error';
+                step.error = `Schema/JSON Error: ${err.message}`;
+                step.output = { valid: false, error: err.message };
+              }
+            }
+          }
+
+          renderPipelineGraph();
+          updateInspectorAndSandbox();
+          resolve(step);
+        }, simLatency);
+      });
+    }
+
+    // WHAT THIS DOES: Runs all steps in sequential DAG order from start to finish, updating progress as each completes.
+    async function runFullPipeline() {
+      elements.btnRunFull.disabled = true;
+      elements.btnRunFull.innerText = '⏳ Running Pipeline...';
+
+      const steps = appState.pipeline.steps;
+      for (let i = 0; i < steps.length; i++) {
+        await executeStep(i);
+        // If a step encounters an error, we halt execution and inspect the failed step
+        if (steps[i].status === 'error') {
+          appState.selectedStepIndex = i;
+          renderPipelineGraph();
+          updateInspectorAndSandbox();
+          break;
+        }
+      }
+
+      elements.btnRunFull.disabled = false;
+      elements.btnRunFull.innerText = '▶ Run Full Pipeline';
+
+      // Automatically capture snapshot for Run A if empty
+      if (!appState.runA) {
+        saveSnapshotToRun('runA');
+      }
+    }
+
+    // WHAT THIS DOES: Switches the active preset pipeline (RAG Q&A vs Structured Extraction) and initializes inputs.
+    function loadPreset(presetKey) {
+      appState.activePresetId = presetKey;
+      appState.pipeline = JSON.parse(JSON.stringify(PIPELINE_PRESETS[presetKey]));
+      appState.selectedStepIndex = 0;
+      appState.simulationMode = 'normal';
+      elements.inputTestQuery.value = appState.pipeline.defaultQuery;
+
+      renderPipelineGraph();
+      updateInspectorAndSandbox();
+    }
+
+    // WHAT THIS DOES: Saves a snapshot of current parameters and outputs into Run A or Run B for side-by-side comparison.
+    function saveSnapshotToRun(slotKey) {
+      const steps = appState.pipeline.steps;
+      const totalLatency = steps.reduce((sum, s) => sum + (s.latency || 0), 0);
+      const totalTokens = steps.reduce((sum, s) => sum + (s.tokensIn || 0) + (s.tokensOut || 0), 0);
+      const lastOutput = steps[steps.length - 1].output;
+
+      appState[slotKey] = {
+        timestamp: new Date().toLocaleTimeString(),
+        modelId: elements.selectModelId.value,
+        temperature: elements.sliderTemperature.value,
+        latency: totalLatency,
+        tokens: totalTokens,
+        output: typeof lastOutput === 'object' ? JSON.stringify(lastOutput, null, 2) : (lastOutput || '(No output)')
+      };
+
+      renderComparisonView();
+    }
+
+    // WHAT THIS DOES: Updates the side-by-side comparison cards (Run A vs Run B) with metrics and diff data.
+    function renderComparisonView() {
+      const a = appState.runA;
+      const b = appState.runB;
+
+      if (a) {
+        elements.compareRunATimestamp.innerText = `Captured: ${a.timestamp}`;
+        elements.compareModelA.innerText = a.modelId;
+        elements.compareTempA.innerText = a.temperature;
+        elements.compareLatencyA.innerText = `${a.latency} ms`;
+        elements.compareTokensA.innerText = `${a.tokens}`;
+        elements.compareOutputA.innerText = a.output;
+      }
+
+      if (b) {
+        elements.compareRunBTimestamp.innerText = `Captured: ${b.timestamp}`;
+        elements.compareModelB.innerText = b.modelId;
+        elements.compareTempB.innerText = b.temperature;
+        elements.compareLatencyB.innerText = `${b.latency} ms`;
+        elements.compareTokensB.innerText = `${b.tokens}`;
+        elements.compareOutputB.innerText = b.output;
+      }
+    }
+
+    // WHAT THIS DOES: Handles live edits to the active step's prompt template and model parameters in the sandbox.
+    function setupSandboxListeners() {
+      // Prompt template changes
+      elements.inputPromptTemplate.addEventListener('input', () => {
+        const step = appState.pipeline.steps[appState.selectedStepIndex];
+        step.promptTemplate = elements.inputPromptTemplate.value;
+        updateInspectorAndSandbox();
+      });
+
+      // Model ID changes
+      elements.selectModelId.addEventListener('change', () => {
+        const step = appState.pipeline.steps[appState.selectedStepIndex];
+        step.modelParams.modelId = elements.selectModelId.value;
+      });
+
+      // Max tokens changes
+      elements.inputMaxTokens.addEventListener('input', () => {
+        const step = appState.pipeline.steps[appState.selectedStepIndex];
+        step.modelParams.maxTokens = parseInt(elements.inputMaxTokens.value, 10) || 512;
+      });
+
+      // Temperature slider changes
+      elements.sliderTemperature.addEventListener('input', () => {
+        const val = parseFloat(elements.sliderTemperature.value);
+        elements.labelTemperature.innerText = val.toFixed(2);
+        const step = appState.pipeline.steps[appState.selectedStepIndex];
+        step.modelParams.temperature = val;
+      });
+
+      // Query input live changes
+      elements.inputTestQuery.addEventListener('input', () => {
+        updateInspectorAndSandbox();
+      });
+
+      // Run full pipeline button
+      elements.btnRunFull.addEventListener('click', runFullPipeline);
+
+      // Run single step button
+      elements.btnRunSingleStep.addEventListener('click', () => {
+        executeStep(appState.selectedStepIndex);
+      });
+
+      // Preset dropdown switch
+      elements.presetSelect.addEventListener('change', (e) => {
+        loadPreset(e.target.value);
+      });
+
+      // Simulation error toggles
+      elements.btnSimulateEmptyRetrieval.addEventListener('click', () => {
+        appState.simulationMode = 'empty_retrieval';
+        alert('Simulation mode set: Next run will simulate an empty retrieval failure.');
+      });
+
+      elements.btnSimulateSchemaError.addEventListener('click', () => {
+        appState.simulationMode = 'schema_error';
+        alert('Simulation mode set: Next run will simulate invalid JSON schema extraction.');
+      });
+
+      elements.btnResetSimulation.addEventListener('click', () => {
+        appState.simulationMode = 'normal';
+        alert('Simulation reset to normal mode.');
+      });
+
+      // Snapshot to Run B button in Comparison tab
+      elements.btnSnapshotComparison.addEventListener('click', () => {
+        saveSnapshotToRun('runB');
+        alert('Current run snapshot saved into Run B for comparison!');
+      });
+    }
+
+    // WHAT THIS DOES: Toggles between the "Live Sandbox" view and "Side-by-Side Compare" view.
+    function setupViewSwitching() {
+      elements.tabSandbox.addEventListener('click', () => {
+        elements.tabSandbox.classList.add('active');
+        elements.tabCompare.classList.remove('active');
+        elements.viewSandbox.style.display = 'grid';
+        elements.viewCompare.style.display = 'none';
+        appState.activeView = 'sandbox';
+      });
+
+      elements.tabCompare.addEventListener('click', () => {
+        elements.tabCompare.classList.add('active');
+        elements.tabSandbox.classList.remove('active');
+        elements.viewSandbox.style.display = 'none';
+        elements.viewCompare.style.display = 'flex';
+        appState.activeView = 'compare';
+        renderComparisonView();
+      });
+    }
+
+    // WHAT THIS DOES: Handles exporting the complete pipeline execution trace to JSON and loading traces back in.
+    function setupTraceModal() {
+      // Open Export Trace
+      elements.btnExportTrace.addEventListener('click', () => {
+        const tracePayload = {
+          exportedAt: new Date().toISOString(),
+          preset: appState.activePresetId,
+          testQuery: elements.inputTestQuery.value,
+          pipeline: appState.pipeline
+        };
+        elements.modalTraceTitle.innerText = "Export Pipeline Trace (JSON)";
+        elements.modalTraceTextarea.value = JSON.stringify(tracePayload, null, 2);
+        elements.modalApplyImportBtn.style.display = 'none';
+        elements.modalDownloadBtn.style.display = 'inline-block';
+        elements.modalTrace.classList.add('open');
+      });
+
+      // Open Load Trace
+      elements.btnImportTrace.addEventListener('click', () => {
+        elements.modalTraceTitle.innerText = "Load / Import Pipeline Trace (Paste JSON)";
+        elements.modalTraceTextarea.value = "";
+        elements.modalTraceTextarea.placeholder = "Paste JSON trace payload here...";
+        elements.modalApplyImportBtn.style.display = 'inline-block';
+        elements.modalDownloadBtn.style.display = 'none';
+        elements.modalTrace.classList.add('open');
+      });
+
+      // Close modal
+      elements.modalCloseBtn.addEventListener('click', () => {
+        elements.modalTrace.classList.remove('open');
+      });
+
+      // Download JSON file
+      elements.modalDownloadBtn.addEventListener('click', () => {
+        const text = elements.modalTraceTextarea.value;
+        const blob = new Blob([text], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `pipeline-trace-${Date.now()}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+
+      // Apply imported JSON
+      elements.modalApplyImportBtn.addEventListener('click', () => {
+        try {
+          const parsed = JSON.parse(elements.modalTraceTextarea.value);
+          if (!parsed.pipeline || !parsed.pipeline.steps) {
+            throw new Error('Invalid trace format: missing pipeline.steps array.');
+          }
+          appState.pipeline = parsed.pipeline;
+          if (parsed.preset) appState.activePresetId = parsed.preset;
+          if (parsed.testQuery) elements.inputTestQuery.value = parsed.testQuery;
+          appState.selectedStepIndex = 0;
+          renderPipelineGraph();
+          updateInspectorAndSandbox();
+          elements.modalTrace.classList.remove('open');
+          alert('Trace loaded successfully!');
+        } catch (err) {
+          alert('Failed to load trace: ' + err.message);
+        }
+      });
+    }
+
+    // WHAT THIS DOES: Initializes the application upon initial page load.
+    function initializeApp() {
+      setupSandboxListeners();
+      setupViewSwitching();
+      setupTraceModal();
+      loadPreset('rag');
+    }
+
+    // Start the app
+    initializeApp();
   </script>
 
 </body>
